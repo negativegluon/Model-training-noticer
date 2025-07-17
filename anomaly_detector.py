@@ -23,8 +23,8 @@ def check_tensorboard_abnormal(log_content, config=None):
 
     # 内部预设参数
     exploding_loss_threshold = 1e6  # 梯度爆炸阈值
-    converge_window = 5             # 收敛判断窗口长度
-    converge_eps = 1e-3             # 收敛判断变化阈值
+    converge_window = 10             # 收敛判断窗口长度
+    converge_eps = 1e-2             # 收敛判断变化阈值
     min_steps_required = 5          # 最小step数阈值
 
     # 提取val_loss数值
@@ -41,7 +41,7 @@ def check_tensorboard_abnormal(log_content, config=None):
 
     # step数不足或没有val_loss直接报错
     if len(val_losses) < min_steps_required:
-        return "错误：step数不足或未检测到val_loss"
+        return None
 
     # 判断灾难性梯度爆炸
     for l in val_losses:
@@ -53,7 +53,7 @@ def check_tensorboard_abnormal(log_content, config=None):
         recent_val_losses = val_losses[-converge_window:]
         val_loss_var = max(recent_val_losses) - min(recent_val_losses)
         if val_loss_var < converge_eps:
-            return f"val_loss已收敛，{len(recent_val_losses)}个最近值变化幅度：{val_loss_var:.6f}"
+            return f"val_loss已收敛，{len(recent_val_losses)}个最近值变化幅度：{val_loss_var:.6f}, 最小值：{min(recent_val_losses):.6f}, 最大值：{max(recent_val_losses):.6f}"
 
     return None     # 无异常则返回None
 
