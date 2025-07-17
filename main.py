@@ -31,6 +31,9 @@ def monitor_gpu(config):
 
 
 def monitor_tensorboard_logs(config):
+    
+    program_info = config.get('program_info')
+    
     while True:
         for log_dir in config['tensorboard']['log_dirs']:
             if not os.path.exists(log_dir):
@@ -57,9 +60,9 @@ def monitor_tensorboard_logs(config):
                             print(log_content)
                             abnormal_info = check_tensorboard_abnormal(log_content)
                             if abnormal_info:
-                                send_error_to_port(f"TensorBoard 日志异常：{file}，详情：{abnormal_info}")
+                                send_error_to_port(f"{program_info}消息：TensorBoard 日志异常：{file}，详情：{abnormal_info}")
                         except Exception as e:
-                            send_error_to_port(f"TensorBoard 日志解析失败：{file}，错误：{e}")
+                            send_error_to_port(f"{program_info}消息：TensorBoard 日志解析失败：{file}，错误：{e}")
         time.sleep(config['gpu']['check_interval'])
 
 if __name__ == "__main__":
