@@ -1,0 +1,2 @@
+# Model-training-noticer
+基于tensorboard日志与GPU使用情况检测模型训练有没有出现异常状况，如果有则通过napcat发送至自己的qq
