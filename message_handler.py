@@ -3,7 +3,7 @@ from ncatbot.utils.config import config as ncat_config
 from ncatbot.core.element import MessageChain, Text
 import yaml
 
-def load_config(config_path="config.yaml"):
+def load_config(config_path="message_handler_config.yaml"):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
     
