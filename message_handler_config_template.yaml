@@ -1,0 +1,7 @@
+napcat_config:
+  bot_qq_number: 
+  napcat_server_url: 
+  napcat_server_token:
+
+message_handler_config:
+  target_qq:    #你想要将信息发送至的qq号

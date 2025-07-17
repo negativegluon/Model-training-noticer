@@ -1,0 +1,12 @@
+gpu:
+  memory_threshold: 1000  # MB，显存利用率低于此值视为异常
+  compute_threshold: 10   # %，计算利用率低于此值视为异常
+  check_interval: 30      # 秒，检测间隔
+  low_util_duration: 600   # 秒，低利用率持续时间阈值
+
+tensorboard:
+  log_dirs:
+    - "/path/to/log1"
+    - "/path/to/log2"
+
+program_info: ""
