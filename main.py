@@ -2,6 +2,7 @@ import time
 import os
 from anomaly_detector import load_config, is_gpu_abnormal, check_tensorboard_abnormal
 from message_handler import send_error_to_port
+from tensorboard.backend.event_processing import event_accumulator
 
 import pynvml
 
@@ -28,19 +29,37 @@ def monitor_gpu(config):
 
         time.sleep(config['gpu']['check_interval'])
 
+
 def monitor_tensorboard_logs(config):
     while True:
         for log_dir in config['tensorboard']['log_dirs']:
             if not os.path.exists(log_dir):
                 continue
+            # 自动识别TensorBoard事件文件
             for root, _, files in os.walk(log_dir):
                 for file in files:
-                    if file.endswith(".log") or file.endswith(".txt"):
-                        with open(os.path.join(root, file), "r", encoding="utf-8", errors="ignore") as f:
-                            content = f.read()
-                            abnormal_info = check_tensorboard_abnormal(content, config)
+                    if file.startswith("events.out.tfevents"):
+                        event_file = os.path.join(root, file)
+                        try:
+                            ea = event_accumulator.EventAccumulator(event_file)
+                            ea.Reload()
+                            # 获取所有loss和val_loss的scalar数据
+                            losses = ea.Scalars('loss') if 'loss' in ea.Tags()['scalars'] else []
+                            val_losses = ea.Scalars('val_loss') if 'val_loss' in ea.Tags()['scalars'] else []
+                            # 构造log_content字符串，便于后续异常检测
+                            
+                            log_lines = []
+                            for l in losses:
+                                log_lines.append(f"step {l.step}: loss={l.value}")
+                            for vl in val_losses:
+                                log_lines.append(f"step {vl.step}: val_loss={vl.value}")
+                            log_content = "\n".join(log_lines)
+                            print(log_content)
+                            abnormal_info = check_tensorboard_abnormal(log_content)
                             if abnormal_info:
                                 send_error_to_port(f"TensorBoard 日志异常：{file}，详情：{abnormal_info}")
+                        except Exception as e:
+                            send_error_to_port(f"TensorBoard 日志解析失败：{file}，错误：{e}")
         time.sleep(config['gpu']['check_interval'])
 
 if __name__ == "__main__":
